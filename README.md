@@ -2,10 +2,10 @@
 
 ## Design
 ### Inputs/Outputs
-- 1 System instructions for a/ generation and b/ summary (can be edited by user, but shouldn't need to)
-- 2 a/ Full text and b/ summary
-- 3 User instruction to generate new text  
-- 4 a/ Temp text & b/ temp summary for review
+1. System instructions for a/ generation and b/ summary (can be edited by user, but shouldn't need to)
+1. a/ Full text and b/ summary
+1. User instruction to generate new text  
+1. a/ Temp text & b/ temp summary for review
 
 ### Actions
 - Generate : 1a, 2b, 3 => 4a
