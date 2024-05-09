@@ -25,3 +25,4 @@ def load():
 def save(fulltext, fullsummary):
     write(outputdir + "/" + textfile, fulltext)
     write(outputdir + "/" + summaryfile, fullsummary)
+    return f"Saved to {outputdir}"
