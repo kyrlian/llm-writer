@@ -18,10 +18,13 @@ def summarize(summaryprompt, fulltext):
 def append(full, tmp):
     return f"{full}\n\n{tmp}"
 
+def replace(tmp):
+    return tmp
 
 def buildapp(initialtext, initialsummary):
     # https://www.gradio.app/guides/blocks-and-event-listeners#blocks-structure
     with gr.Blocks() as myapp:
+        gr.Markdown("# LLM Writer")
         # https://www.gradio.app/guides/controlling-layout#rows
         with gr.Row():
             with gr.Column():
@@ -41,11 +44,11 @@ def buildapp(initialtext, initialsummary):
             with gr.Column():
                 suggest_btn = gr.Button("Suggest")
                 tmptext_box = gr.Textbox(label="Temp text", lines=5)
-                appendtext_btn = gr.Button("Accept text")
+                accepttext_btn = gr.Button("Accept text")
             with gr.Column():
                 summarize_btn = gr.Button("Summarize")
                 tmpsummary_box = gr.Textbox(label="Temp summary", lines=5)
-                appendsummary_btn = gr.Button("Accept summary")
+                acceptsummary_btn = gr.Button("Accept summary")
         with gr.Row():
             save_btn = gr.Button("Save")
         with gr.Row():
@@ -64,17 +67,17 @@ def buildapp(initialtext, initialsummary):
             outputs=tmpsummary_box,
             api_name="summarize",
         )
-        appendtext_btn.click(
+        accepttext_btn.click(
             fn=append,
             inputs=[fulltext_box, tmptext_box],
             outputs=[fulltext_box],
             api_name="appendtxt",
         )
-        appendsummary_btn.click(
-            fn=append,
-            inputs=[fullsummary_box, tmpsummary_box],
+        acceptsummary_btn.click(
+            fn=replace,
+            inputs=[tmpsummary_box],
             outputs=[fullsummary_box],
-            api_name="appendsummary",
+            api_name="replacesummary",
         )
         save_btn.click(
             fn=save,
