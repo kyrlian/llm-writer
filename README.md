@@ -3,9 +3,9 @@
 ## Design
 ### Inputs/Outputs
 1. System instructions for a/ generation and b/ summary (can be edited by user, but shouldn't need to)
-1. a/ Full text and b/ summary
-1. User instruction to generate new text  
-1. a/ Temp text & b/ temp summary for review
+2. a/ Full text and b/ summary
+3. User instruction to generate new text  
+4. a/ Temp text & b/ temp summary for review
 
 ### Actions
 - Generate : 1a, 2b, 3 => 4a
@@ -13,6 +13,14 @@
 - Accept text: 2a, 4a => 2a 
 - Accept summary: 4b => 2b
 
+### Usage flow
+1. Input an initial context in "Summary"
+2. Input an instruction to move the story forward in "Instruction"
+3. Generate new text
+4. Review and accept - it will append to full text
+5. Click summarize to refresh the summary
+6. Repeat
+ 
 ### Technology
 - [gradio](https://www.gradio.app/)
 - [ollama](https://ollama.com/)
@@ -43,4 +51,4 @@ python app/main.py
 
 ## Ressources
 
-- https://www.langchain.ca/blog/chatgpt-clone-with-ollama-gradio/
+- [Simple gradio app to start with ollama](https://www.langchain.ca/blog/chatgpt-clone-with-ollama-gradio/)
