@@ -1,4 +1,6 @@
-# llm-writer
+# LLM Writer
+
+![Screenshot](./images/Screenshot.png)
 
 ## Design
 ### Inputs/Outputs
@@ -20,7 +22,8 @@
 4. Review and accept - it will append to full text
 5. Click summarize to refresh the summary
 6. Repeat
- 
+
+
 ### Technology
 - [gradio](https://www.gradio.app/)
 - [ollama](https://ollama.com/)
