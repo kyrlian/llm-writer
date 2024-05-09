@@ -37,7 +37,7 @@ pip install -r requirements.txt -U
 ## Run
 
 ```sh
-python main.py
+python app/main.py
 ```
 
 ## Ressources
