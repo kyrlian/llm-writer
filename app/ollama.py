@@ -3,12 +3,12 @@ import json
 
 # Ollama exposes port 11434 by default
 url = "http://localhost:11434/api/generate"
-
+model = "llama3"
 headers = {"Content-Type": "application/json"}
 
 
 def generate_response(prompt):
-    data = {"model": "llama3", "stream": False, "prompt": prompt}
+    data = {"model": model, "stream": False, "prompt": prompt}
 
     response = requests.post(url, headers=headers, data=json.dumps(data))
 
