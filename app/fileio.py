@@ -1,3 +1,4 @@
+from datetime import datetime
 
 inputdir = "inputs"
 outputdir = "outputs"
@@ -23,6 +24,7 @@ def load():
 
 
 def save(fulltext, fullsummary):
-    write(outputdir + "/" + textfile, fulltext)
-    write(outputdir + "/" + summaryfile, fullsummary)
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    write(f"{outputdir}/{timestamp}-{textfile}", fulltext)
+    write(f"{outputdir}/{timestamp}-{summaryfile}", fullsummary)
     return f"Saved to {outputdir}"
