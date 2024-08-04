@@ -58,7 +58,7 @@ pip install -r requirements-torch-windows-cuda12.txt --upgrade
 ## Run
 
 ```sh
-python app/main.py
+gradio ./src/app.py
 ```
 
 ## Ressources
