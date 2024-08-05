@@ -6,7 +6,7 @@ from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
 
 
-class Style(Base):
+class MyStyle(Base):
     def __init__(
         self,
         *,

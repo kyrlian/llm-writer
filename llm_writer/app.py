@@ -1,11 +1,11 @@
 import gradio as gr
 
-from ollama import generate_response
+from engine_ollama import Engine as ollamaEngine
 from prompts import prompts
 from fileio import load, save
-from src import style
-from style import Style
+from custom_style import MyStyle
 
+# Init sdxlturbo
 sdxlturbo_loaded = False
 try:
     from sdxlturbo import sdxlturboPipeline
@@ -14,22 +14,32 @@ try:
 except ImportError:
     print(f"Couldn't load sdxlturbo, deactivating image generation")
 
-# Functions
+
 def changelang(lang):
     return prompts[lang]["prompt_suggest"], prompts[lang]["prompt_summarize"]
 
+# Init LLM
+initialtext, initialsummary = load()
+default_lang = list(prompts.keys())[0]
+prompt_suggest, prompt_summarize = changelang(default_lang)
+ollama_engine = ollamaEngine()
 
-def suggest(suggestpprompt, fulltext, fullsummary, instructions):
+# Functions
+def llm_suggest(modelid, suggestpprompt, summaryprompt, fulltext, fullsummary, instructions):
     prompt = suggestpprompt.format(
         fulltext=fulltext, fullsummary=fullsummary, instructions=instructions
     )
-    return generate_response(prompt)
+    new_text = ollama_engine.generate(prompt, model=modelid)
+    summary_prompt = summaryprompt.format(fulltext=fulltext, tmptext=new_text)
+
+    new_summary = ollama_engine.generate(summary_prompt, model=modelid)
+    return new_text, new_summary
 
 
-def summarize(summaryprompt, fulltext, tmptext):
-    prompt = summaryprompt.format(fulltext=fulltext, tmptext=tmptext)
-    return generate_response(prompt)
-
+def llm_summarize(modelid, summaryprompt, fulltext, tmptext):
+    summary_prompt = summaryprompt.format(fulltext=fulltext, tmptext=new_text)
+    new_summary = ollama_engine.generate(summary_prompt, model=modelid)
+    return new_summary
 
 def generate_image(imglist, prompt):
     if sdxlturbo_loaded:
@@ -48,14 +58,9 @@ def accept(fulltext, tmptext, fullsummary, tmpsummary, imglist):
         generate_image(imglist, tmpsummary),
     )
 
-# Init
-initialtext, initialsummary = load()
-default_lang = list(prompts.keys())[0]
-prompt_suggest, prompt_summarize = changelang(default_lang)
-
 # App
 # https://www.gradio.app/guides/blocks-and-event-listeners#blocks-structure
-with gr.Blocks(theme=style.Style()) as demo:
+with gr.Blocks(theme=MyStyle()) as demo:
     gr.Markdown("# LLM Writer")
     # https://www.gradio.app/guides/controlling-layout#rows
     with gr.Accordion(label="Setup",open=True):
@@ -74,7 +79,8 @@ with gr.Blocks(theme=style.Style()) as demo:
                 value=prompt_summarize,
                 label="Summary prompt - use {fulltext}, {tmptext} placeholders",
             )
-        model_drop = gr.Dropdown(label="Model")# TODO get ollama models
+        model_list = ollama_engine.list()
+        model_drop = gr.Dropdown(label="Model", choices=model_list, value=model_list[0])# TODO get ollama models
         if sdxlturbo_loaded:
             generate_image_check = gr.Checkbox(label="Generate Image with sdxlturbo",value=True)
     fulltext_box = gr.Textbox(
@@ -103,19 +109,20 @@ with gr.Blocks(theme=style.Style()) as demo:
         api_name="changelang",
     )
     suggest_btn.click(
-        fn=suggest,
-        inputs=[
+        fn=llm_suggest,
+        inputs=[model_drop,
             suggestpprompt_box,
+            summaryprompt_box,
             fulltext_box,
             fullsummary_box,
             instructions_box,
         ],
-        outputs=tmptext_box,
+        outputs=[tmptext_box, tmpsummary_box],
         api_name="suggest",
     )
     summarize_btn.click(
-        fn=summarize,
-        inputs=[summaryprompt_box, fulltext_box, tmptext_box],
+        fn=llm_summarize,
+        inputs=[model_drop, summaryprompt_box, fulltext_box, tmptext_box],
         outputs=tmpsummary_box,
         api_name="summarize",
     )

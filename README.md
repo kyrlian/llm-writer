@@ -37,28 +37,40 @@ Optional to generate illustrations:
 
 - Install [ollama](https://ollama.com/)
 - Get ollama model (the model can be changed in [ollama.py](./app/ollama.py)):
-```sh
-ollama serve
-ollama list
-ollama pull llama3
-```
+    ```sh
+    ollama serve
+    ollama list
+    ollama pull llama3
+    ```
 
-- Clone and install requirements:
-```sh
-git clone https://github.com/kyrlian/llm-writer.git
-cd llm-writer
-pip install -r requirements.txt --upgrade
-```
+- Clone
+    ```sh
+    git clone https://github.com/kyrlian/llm-writer.git
+    cd llm-writer
+    ```
+- Install requirements
+
+    ```sh
+    poetry install
+    ```
+
+    or with pip:
+
+    ```sh
+    pip install -r requirements.txt --upgrade
+    ```
+
 - **Optional**: install sdxl turbo requirements - if sdxl turbo can't be loaded, the image generation will be disabled.:
-```sh
-pip install -r requirements-sdxlturbo.txt --upgrade
-pip install -r requirements-torch-windows-cuda12.txt --upgrade
-```
+    ```sh
+    pip install -r requirements-sdxlturbo.txt --upgrade
+    pip install -r requirements-torch-windows-cuda12.txt --upgrade
+    ```
 
 ## Run
 
 ```sh
-gradio ./src/app.py
+poetry shell
+python ./llm_writer/app.py
 ```
 
 ## Ressources

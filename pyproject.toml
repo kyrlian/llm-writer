@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "llm_writer"
+version = "0.1.0"
+description = ""
+authors = ["kyrlian <kyrlian@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+gradio = "^4.40.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
