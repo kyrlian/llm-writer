@@ -3,7 +3,7 @@ from datetime import datetime
 inputdir = "inputs"
 outputdir = "outputs"
 textfile = "text.txt"
-summaryfile = "summary.txt"
+# summaryfile = "summary.txt"
 
 def read(filename):
     f = open(filename, "r")
@@ -19,12 +19,11 @@ def write(filename, s):
 
 def load():
     initialtext = read(inputdir + "/" + textfile)
-    initialsummary = read(inputdir + "/" + summaryfile)
-    return initialtext, initialsummary
+    return initialtext
 
 
-def save(fulltext, fullsummary):
+def save(fulltext):
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     write(f"{outputdir}/{timestamp}-{textfile}", fulltext)
-    write(f"{outputdir}/{timestamp}-{summaryfile}", fullsummary)
+    # write(f"{outputdir}/{timestamp}-{summaryfile}", fullsummary)
     return f"Saved to {outputdir}"

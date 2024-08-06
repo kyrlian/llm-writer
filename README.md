@@ -1,6 +1,6 @@
 # LLM Writer
 
-![Screenshot](./images/Screenshot.png)
+![Screenshot](./images/Screenshot-v3b.png)
 
 ## Design
 ### Inputs/Outputs
