@@ -26,8 +26,9 @@
 
 ## Technology
 - [python](https://www.python.org/)
-- [gradio](https://www.gradio.app/)
 - [ollama](https://ollama.com/)
+- [gradio](https://www.gradio.app/)
+- [textual](https://textual.textualize.io/)
   
 Optional to generate illustrations:
 - [sdxl turbo](https://huggingface.co/stabilityai/sdxl-turbo)
@@ -70,7 +71,16 @@ Optional to generate illustrations:
 
 ```sh
 poetry shell
-python ./llm_writer/app.py
+```
+
+Web UI (gradio):
+```sh
+python ./llm_writer/gradio_app.py
+```
+
+Text ui (Textual):
+```sh
+python ./llm_writer/textual_cli.py
 ```
 
 ## Ressources
