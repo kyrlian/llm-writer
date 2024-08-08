@@ -26,7 +26,7 @@ prompt_summarize = prompts[lang]["prompt_summarize"]
 class InputApp(App):
 
     # TODO check syntax for Ctrl+S
-    BINDINGS = [("q", "quit", "Quit"), ("Ctrl+s","save","Save")]
+    BINDINGS = [("q", "quit", "Quit"), ("ctrl+s","save","Save")]
 
     def __init__(self, *args, engine, prompt, **kwargs):
         self.engine = engine
