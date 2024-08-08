@@ -4,15 +4,13 @@
 
 import sys
 from textual.app import App, ComposeResult
-from textual.widgets import Log, TextArea, Button, OptionList
+from textual.widgets import Log, TextArea, Button, OptionList, Header, Footer
 
 from engine_ollama import Engine as ollamaEngine
 from prompts import prompts
 from fileio import load, save
 from parse_generate import (
     parse_and_generate,
-    SUMMARY_TAG,
-    INSTRUCTION_TAG,
     STATUS_NOTHING,
 )
 
@@ -26,16 +24,22 @@ prompt_summarize = prompts[lang]["prompt_summarize"]
 
 
 class InputApp(App):
+
+    # TODO check syntax for Ctrl+S
+    BINDINGS = [("q", "quit", "Quit"), ("Ctrl+s","save","Save")]
+
     def __init__(self, *args, engine, prompt, **kwargs):
         self.engine = engine
         self.prompt = prompt
         super().__init__(*args, **kwargs)
 
     def compose(self) -> ComposeResult:
+        yield Header()
         yield TextArea(id="txt_input", text=self.prompt)
-        yield OptionList(*models_list, id="drop_models")
-        yield Button(id="btn_save", label="Save")
+        # yield OptionList(*models_list, id="drop_models")
+        yield Button(id="btn_save", label="Save", variant="success")
         yield Log(id="debug")
+        yield Footer()
 
     def on_ready(self) -> None:
         self.debug("Ready!")
@@ -58,6 +62,10 @@ class InputApp(App):
                 if status is not STATUS_NOTHING:
                     self.debug(f"generated: {generated}")
                     message.text_area.insert(generated)
+
+    def action_save(self):
+        self.debug("Saving...")
+        # TODO save to file
 
     def debug(self, msg):
         self.query_one("#debug", Log).write_line(f"DEBUG:{msg}")
