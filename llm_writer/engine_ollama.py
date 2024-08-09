@@ -23,34 +23,45 @@ class Engine:
             return []
 
 
-    def generate_stream(self, prompt, model=None, temperature=None, max_tokens=None, stop=[]):
+    def generate_stream(self, prompt, model=None, temperature=None, max_tokens=None, stop=[], cumulative = False):
         if model is None:
             model = self.model
         options={"temperature":temperature, "num_predict":max_tokens, "stop":stop}
         data = {"model": model, "stream": True, "prompt": prompt, "options":options}
         response_stream = requests.post(f"{self.url}/generate", headers=self.headers, json=data)
-        full_response=""
-        current_line_num=0
         if response_stream.status_code == 200:
+            full_response_string=""
+            current_line_num=0
+            full_generated = ""
             for response_chunk_bytes in response_stream:
                 response_chunk_string = response_chunk_bytes.decode("utf-8")
-                full_response += response_chunk_string
-                full_response_lines = full_response.splitlines()
+                full_response_string += response_chunk_string
+                full_response_lines = full_response_string.splitlines()
                 working_lines = full_response_lines[current_line_num:-1] # read after previous lines and skip last (incomplete)
                 current_line_num += len(working_lines)
                 for working_line in working_lines:
                     line_json = json.loads(working_line)
                     if self.verbose:
                         print("Response JSON:", line_json)
-                    yield line_json["response"]
+                    generated = line_json["response"]
+                    if cumulative:
+                        full_generated += generated
+                        yield full_generated
+                    else:
+                        yield generated
             # handle last line
-            last_response = full_response.splitlines()[-1]
+            last_response = full_response_string.splitlines()[-1]
             last_json = json.loads(last_response)
             if self.verbose:
                 print("Response JSON:", last_json)
-            yield last_json["response"]
-            # yield full_response
-        yield ""
+            generated = last_json["response"]
+            if cumulative:
+                full_generated += generated
+                yield full_generated
+            else:
+                yield generated
+        else:
+            yield ""
             
 
     def generate_response(self, prompt, model=None, temperature=None, max_tokens=None, stop=[]):
@@ -75,9 +86,9 @@ class Engine:
             return actual_response
         return None
     
-    def generate(self, prompt, model=None, temperature=None, max_tokens=None, stop=[], stream=False):
+    def generate(self, prompt, model=None, temperature=None, max_tokens=None, stop=[], stream=False, cumulative= False):
         if stream:
-            return self.generate_stream(prompt, model, temperature, max_tokens, stop)
+            return self.generate_stream(prompt, model, temperature, max_tokens, stop, cumulative)
             # for g in gen:
             #     yield g 
         else:       

@@ -1,3 +1,5 @@
+from time import sleep
+
 """ Template:
 ## Instructions
 
@@ -9,9 +11,6 @@ Summary
 """
 
 # Const
-from typing import Any, Generator
-
-
 INSTRUCTION_TAG = "#"
 SUMMARY_TAG = "---"
 
@@ -36,34 +35,25 @@ def parse_lines(lines):
     mode = "text"
     current_text = ""
     current_summary = ""
-    for l in lines:
-        if l.startswith(INSTRUCTION_TAG):  # instruction
+    for line in lines:
+        if line.startswith(INSTRUCTION_TAG):  # instruction
             texts, summaries, current_text, current_summary = flush(
                 texts, summaries, current_text, current_summary
             )
-            instructions.append(l.replace(INSTRUCTION_TAG, ""))
+            instructions.append(line.replace(INSTRUCTION_TAG, ""))
             mode = "text"
-        elif l == SUMMARY_TAG:  # summary
+        elif line == SUMMARY_TAG:  # summary
             texts, summaries, current_text, current_summary = flush(
                 texts, summaries, current_text, current_summary
             )
             mode = "summary"
         else:
             if mode == "text":
-                current_text += l + "\n"
+                current_text += line + "\n"
             elif mode == "summary":
-                current_summary += l + "\n"
+                current_summary += line + "\n"
     # last flush
     texts, summaries, _, _ = flush(texts, summaries, current_text, current_summary)
-    print(
-        f"""========= parse_lines() =========
-        == summaries ==
-        => {"\n => ".join(summaries)}
-        == texts ==
-        => {"\n => ".join(texts)}
-        == instructions ==
-        => {"\n => ".join(instructions)}"""
-    )
     return summaries, texts, instructions
 
 
@@ -92,15 +82,6 @@ def parse_and_generate(
             summary=previous_summaries, text=last_text, instructions=last_instruction
         )
         generated = "\n" + ollama_engine.generate(prompt, model=modelid)
-        print(
-            f"""========= fulltext_box_submit() =========
-            == status ==
-            => {status}
-            == prompt ==
-            => {prompt}
-            == generated ==
-            => {generated}"""
-        )
         if status == STATUS_GENERATE:
             status += ": " + last_instruction
     if include_input:
@@ -109,7 +90,7 @@ def parse_and_generate(
         return generated, status
 
 def parse_and_generate_stream(
-    ollama_engine, fulltext, modelid, suggestpprompt, summaryprompt, include_input=True
+    ollama_engine, fulltext, modelid, suggestpprompt, summaryprompt, include_input=True, cumulative=False
 ) :
     lines = fulltext.splitlines()
     last_line = lines[-1]
@@ -136,9 +117,10 @@ def parse_and_generate_stream(
             status += ": " + last_instruction
         if include_input:
             yield fulltext, status
-        yield "\n", status
-        generate_stream = ollama_engine.generate(prompt, model=modelid, stream=True)
+        yield (fulltext if cumulative else "")+"\n", status
+        generate_stream = ollama_engine.generate(prompt, model=modelid, stream=True, cumulative=cumulative)
         for chunk in generate_stream:
-            yield chunk, status
+            yield (fulltext+"\n" if cumulative else "")+ chunk, status
+            # sleep(1)
     else:
-        yield "", status
+        yield fulltext+"\n" if include_input else "", status

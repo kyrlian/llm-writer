@@ -4,7 +4,7 @@ from engine_ollama import Engine as ollamaEngine
 from prompts import prompts
 from fileio import load, save
 from custom_style import MyStyle
-from parse_generate import parse_and_generate, SUMMARY_TAG, INSTRUCTION_TAG
+from parse_generate import parse_and_generate, SUMMARY_TAG, INSTRUCTION_TAG, parse_and_generate_stream, STATUS_NOTHING
 
 # Init sdxlturbo
 sdxlturbo_loaded = False
@@ -26,6 +26,7 @@ default_lang = list(prompts.keys())[0]
 prompt_suggest, prompt_summarize = changelang(default_lang)
 
 def fulltext_box_submit(fulltext, modelid, suggestpprompt, summaryprompt):
+    # Classic -  no stream - unused, now calling parse_and_generate_stream directly from fulltext_box.submit
     generated, status = parse_and_generate(ollama_engine, fulltext, modelid, suggestpprompt, summaryprompt)
     return generated, status
 
@@ -103,8 +104,13 @@ with gr.Blocks(theme=MyStyle()) as demo:
     )
 
     fulltext_box.submit(
-        fn=fulltext_box_submit,
-        inputs=[fulltext_box, model_drop, suggestpprompt_box, summaryprompt_box],
+        # No stream
+        # fn=fulltext_box_submit,
+        # inputs=[fulltext_box, model_drop, suggestpprompt_box, summaryprompt_box],
+        # outputs=[fulltext_box, status_box],
+        # Streaming
+        fn=parse_and_generate_stream,
+        inputs=[gr.State(ollama_engine),fulltext_box, model_drop, suggestpprompt_box, summaryprompt_box, gr.Checkbox(value=True,visible=False), gr.Checkbox(value=True,visible=False)],
         outputs=[fulltext_box, status_box],
     )
 
