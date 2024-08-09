@@ -121,6 +121,6 @@ def parse_and_generate_stream(
         generate_stream = ollama_engine.generate(prompt, model=modelid, stream=True, cumulative=cumulative)
         for chunk in generate_stream:
             yield (fulltext+"\n" if cumulative else "")+ chunk, status
-            # sleep(1)
+            # sleep(.1)
     else:
         yield fulltext+"\n" if include_input else "", status
