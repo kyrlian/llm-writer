@@ -77,9 +77,9 @@ class Engine:
     
     def generate(self, prompt, model=None, temperature=None, max_tokens=None, stop=[], stream=False):
         if stream:
-            gen = self.generate_stream(prompt, model, temperature, max_tokens, stop)
-            for g in gen:
-                yield g 
+            return self.generate_stream(prompt, model, temperature, max_tokens, stop)
+            # for g in gen:
+            #     yield g 
         else:       
             return self.generate_text(prompt, model, temperature, max_tokens, stop)
 
