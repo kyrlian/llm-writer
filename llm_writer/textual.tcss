@@ -1,6 +1,0 @@
-#txt_input {
-    height: 9fr;
-}
-#status_log{
-    height: 1fr;
-}

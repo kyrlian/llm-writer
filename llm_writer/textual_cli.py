@@ -3,6 +3,7 @@
 # https://textual.textualize.io/widgets/input/
 
 import sys
+from time import sleep
 from functools import partial
 from rich.text import Text
 from textual.app import App, ComposeResult
@@ -13,8 +14,10 @@ from prompts import prompts
 from fileio import load, save
 from parse_generate import (
     parse_and_generate,
+    parse_and_generate_stream,
     STATUS_NOTHING,
 )
+from experiments.gen import mygen
 
 # Use custom commands to switch model (instead of 'next model')
 # https://textual.textualize.io/guide/command_palette/
@@ -49,7 +52,7 @@ class WriterApp(App):
 
     BINDINGS = [("ctrl+s","save","Save"), ("ctrl+m","next_model","next Model"),("ctrl+q", "quit", "Quit")]
     COMMANDS =  {SelectModelCommands}  | App.COMMANDS
-    CSS_PATH = "textual.tcss"
+    # CSS_PATH = "textual.tcss"
 
     def __init__(self, *args, input_file=None, **kwargs):
         self.engine = ollamaEngine()
@@ -60,6 +63,7 @@ class WriterApp(App):
         lang = list(prompts.keys())[0]
         self.prompt_suggest = prompts[lang]["prompt_suggest"]
         self.prompt_summarize = prompts[lang]["prompt_summarize"]
+        self.updating=False
         super().__init__(*args, **kwargs)
 
     def compose(self) -> ComposeResult:
@@ -72,11 +76,28 @@ class WriterApp(App):
         self.set_model ( self.models[self.model_idx])
 
     def on_text_area_changed(self, message: TextArea.Changed):
-        if message.text_area.id == "txt_input":
+        if message.text_area.id == "txt_input" and not self.updating: #as I update the text area direcly, I need avoid updating  on my own updates
             if message.text_area.text[-1] == "\n":  # if just typed enter
+                self.updating = True
                 self.set_status("Processing...", save_status=False)
                 fulltext = message.text_area.text.strip()
-                generated, status = parse_and_generate(
+                # Old - no stream
+                # generated, status = parse_and_generate(
+                #     self.engine,
+                #     fulltext,
+                #     self.model,
+                #     self.prompt_suggest,
+                #     self.prompt_summarize,
+                #     include_input=False,
+                # )
+                # if status is not STATUS_NOTHING:
+                #     self.set_status(f"{status} : {generated}")
+                #     message.text_area.insert(generated)
+                # else:
+                #     self.set_status()
+                ## STREAM
+                # full_generated = message.text_area.text
+                gen_stream = parse_and_generate_stream(
                     self.engine,
                     fulltext,
                     self.model,
@@ -84,11 +105,26 @@ class WriterApp(App):
                     self.prompt_summarize,
                     include_input=False,
                 )
-                if status is not STATUS_NOTHING:
-                    self.set_status(f"{status} : {generated}")
-                    message.text_area.insert(generated)
-                else:
-                    self.set_status()
+                for generated, status in gen_stream:
+                    if status is not STATUS_NOTHING:
+                        self.set_status(f"{status} : {generated}")
+                        if generated is not None and len(generated)>0:
+                            message.text_area.insert(generated) # this does not update until the end, useless in streaming :(
+                            # full_generated += generated
+                            # message.text_area.text = full_generated
+                            # message.text_area.insert("-")
+                            # message.text_area.render()
+                            # message.text_area.refresh()
+                            # message.text_area.recompose()
+                            # message.text_area.app.render()
+                            # message.text_area.app.refresh()
+                            # message.text_area.app.recompose()
+
+                    else:
+                        self.set_status()
+                # message.text_area.replace("")# To move the cursor at the end of the text
+                self.updating = False
+
 
     def set_model(self,model):
         self.model = model

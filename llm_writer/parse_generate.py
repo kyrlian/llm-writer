@@ -9,6 +9,9 @@ Summary
 """
 
 # Const
+from typing import Any, Generator
+
+
 INSTRUCTION_TAG = "#"
 SUMMARY_TAG = "---"
 
@@ -104,3 +107,38 @@ def parse_and_generate(
         return fulltext + "\n" + generated, status
     else:
         return generated, status
+
+def parse_and_generate_stream(
+    ollama_engine, fulltext, modelid, suggestpprompt, summaryprompt, include_input=True
+) :
+    lines = fulltext.splitlines()
+    last_line = lines[-1]
+    prompt_template = None
+    status = STATUS_NOTHING
+    if last_line.startswith(INSTRUCTION_TAG):  # instruction
+        prompt_template = suggestpprompt
+        status = STATUS_GENERATE
+    elif last_line == SUMMARY_TAG:  # summary
+        prompt_template = summaryprompt
+        status = STATUS_SUMMARY
+    if status is not STATUS_NOTHING:
+        summaries, texts, instructions = parse_lines(lines)
+        last_instruction = instructions[-1] if len(instructions) > 0 else ""
+        last_text = texts[-1] if len(texts) > 0 else ""
+        # all_summaries = "\n".join(summaries) if len(summaries) > 0 else ""
+        # all_texts = "\n".join(texts) if len(texts) > 0 else ""
+        previous_summaries = "\n".join(summaries[:-1]) if len(summaries) > 0 else ""
+        prompt = prompt_template.format(
+            summary=previous_summaries, text=last_text, instructions=last_instruction
+        )
+        ### STREAM
+        if status == STATUS_GENERATE:
+            status += ": " + last_instruction
+        if include_input:
+            yield fulltext, status
+        yield "\n", status
+        generate_stream = ollama_engine.generate(prompt, model=modelid, stream=True)
+        for chunk in generate_stream:
+            yield chunk, status
+    else:
+        yield "", status
