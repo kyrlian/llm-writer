@@ -18,6 +18,7 @@ class Engine:
             return modelnames
         else:
             print("Error:", response.status_code, response.text)
+            return []
 
     def generate(self, prompt, model=None):
         if model is None:
@@ -30,6 +31,7 @@ class Engine:
             return actual_response
         else:
             print("Error:", response.status_code, response.text)
+            return ""
 
 
 if __name__ == "__main__":
