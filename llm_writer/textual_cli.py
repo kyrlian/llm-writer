@@ -110,6 +110,7 @@ class WriterApp(App):
                         self.set_status(f"{status} : {generated}")
                         if generated is not None and len(generated)>0:
                             message.text_area.insert(generated) # this does not update until the end, useless in streaming :(
+                            # TODO find how to refresh the display to show the streaming
                             # full_generated += generated
                             # message.text_area.text = full_generated
                             # message.text_area.insert("-")
