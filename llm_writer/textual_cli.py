@@ -3,9 +3,11 @@
 # https://textual.textualize.io/widgets/input/
 
 import sys
+from functools import partial
+from rich.text import Text
 from textual.app import App, ComposeResult
-from textual.widgets import Log, TextArea, Button, OptionList, Header, Footer
-
+from textual.widgets import TextArea, Header, Footer, Static
+from textual.command import Hit, Hits, DiscoveryHit, Provider
 from engine_ollama import Engine as ollamaEngine
 from prompts import prompts
 from fileio import load, save
@@ -14,65 +16,103 @@ from parse_generate import (
     STATUS_NOTHING,
 )
 
-# Init LLM
-initialtext = load()
-ollama_engine = ollamaEngine()
-models_list = ollama_engine.list()
-lang = list(prompts.keys())[0]
-prompt_suggest = prompts[lang]["prompt_suggest"]
-prompt_summarize = prompts[lang]["prompt_summarize"]
+# Use custom commands to switch model (instead of 'next model')
+# https://textual.textualize.io/guide/command_palette/
+class SelectModelCommands(Provider):
+    """A command provider to select a model."""
+    def simple_highlight(self, txt:str, match: str) -> Text:
+        rich_text = Text(txt)
+        offset = txt.find(match)
+        if offset >= 0 and len(match)>0:
+            match_style = self.matcher(match).match_style  
+            rich_text.stylize(match_style, offset, offset + len(match))
+        return rich_text
+    
+    async def search(self, query: str) -> Hits:  
+        """Search for Models."""
+        app = self.app
+        for model in app.models:
+            if query in model:
+                yield Hit(
+                    1,
+                    self.simple_highlight(f"Select {model}", query),
+                    partial(app.set_model, model),
+                )
+
+    async def discover(self) ->  Hits:
+        """Display Models"""
+        for model in app.models:
+            yield DiscoveryHit(f"Select {model}", partial(app.set_model, model))
 
 
-class InputApp(App):
+class WriterApp(App):
 
-    # TODO check syntax for Ctrl+S
-    BINDINGS = [("q", "quit", "Quit"), ("ctrl+s","save","Save")]
+    BINDINGS = [("ctrl+s","save","Save"), ("ctrl+m","next_model","next Model"),("ctrl+q", "quit", "Quit")]
+    COMMANDS =  {SelectModelCommands}  | App.COMMANDS
+    CSS_PATH = "textual.tcss"
 
-    def __init__(self, *args, engine, prompt, **kwargs):
-        self.engine = engine
-        self.prompt = prompt
+    def __init__(self, *args, input_file=None, **kwargs):
+        self.engine = ollamaEngine()
+        self.input_file = input_file
+        self.models = self.engine.list()
+        self.model_idx = 0
+        self.status_msg = "Initializing..."
+        lang = list(prompts.keys())[0]
+        self.prompt_suggest = prompts[lang]["prompt_suggest"]
+        self.prompt_summarize = prompts[lang]["prompt_summarize"]
         super().__init__(*args, **kwargs)
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield TextArea(id="txt_input", text=self.prompt)
-        # yield OptionList(*models_list, id="drop_models")
-        yield Button(id="btn_save", label="Save", variant="success")
-        yield Log(id="debug")
+        yield TextArea(id="txt_input", text= load(self.input_file ), tab_behavior='indent')
+        yield Static(self.status_msg, id="status_log")
         yield Footer()
 
     def on_ready(self) -> None:
-        self.debug("Ready!")
+        self.set_model ( self.models[self.model_idx])
 
     def on_text_area_changed(self, message: TextArea.Changed):
         if message.text_area.id == "txt_input":
-            tat = message.text_area.text
-            if tat[-1] == "\n":  # if just typed enter
-                fulltext = tat.strip()
-                self.debug(f"fulltext: {fulltext}")
+            if message.text_area.text[-1] == "\n":  # if just typed enter
+                self.set_status("Processing...", save_status=False)
+                fulltext = message.text_area.text.strip()
                 generated, status = parse_and_generate(
                     self.engine,
                     fulltext,
-                    "llama3:latest",
-                    prompt_suggest,
-                    prompt_summarize,
+                    self.model,
+                    self.prompt_suggest,
+                    self.prompt_summarize,
                     include_input=False,
                 )
-                self.debug(f"status: {status}")
                 if status is not STATUS_NOTHING:
-                    self.debug(f"generated: {generated}")
+                    self.set_status(f"{status} : {generated}")
                     message.text_area.insert(generated)
+                else:
+                    self.set_status()
+
+    def set_model(self,model):
+        self.model = model
+        self.set_status(f"Model: {self.model}")
+
+    def action_next_model(self):
+        self.model_idx = (self.model_idx + 1) % len(self.models)
+        self.set_model ( self.models[self.model_idx])
 
     def action_save(self):
-        self.debug("Saving...")
-        # TODO save to file
+        self.set_status("Saving...")
+        txt = self.query_one("#txt_input", TextArea).text
+        save(txt)
 
-    def debug(self, msg):
-        self.query_one("#debug", Log).write_line(f"DEBUG:{msg}")
+    def set_status(self, msg=None, save_status=True):
+        if msg is None:
+            msg = self.status_msg
+        elif save_status:
+           self.status_msg = msg
+        self.query_one("#status_log", Static).update(msg)# .write_line(msg)
 
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    ollama_engine = ollamaEngine()
-    app = InputApp(engine=ollama_engine, prompt=initialtext)
+    input_file = None if len(args) == 0 else args[0]
+    app = WriterApp(input_file)
     app.run()
