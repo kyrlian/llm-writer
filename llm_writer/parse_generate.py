@@ -1,4 +1,5 @@
 from time import sleep
+from typing import Generator
 
 """ Template:
 ## Instructions
@@ -91,7 +92,7 @@ def parse_and_generate(
 
 def parse_and_generate_stream(
     ollama_engine, fulltext, modelid, suggestpprompt, summaryprompt, include_input=True, cumulative=False
-) :
+)-> Generator:
     lines = fulltext.splitlines()
     last_line = lines[-1]
     prompt_template = None

@@ -1,63 +1,95 @@
 #!python3
+print("In module products __package__, __name__ ==", __package__, __name__)
 
 # https://textual.textualize.io/widgets/input/
 
 import sys
+import asyncio
 from functools import partial
+from typing import Generator
+from time import sleep
 from rich.text import Text
 from textual import events
 from textual.app import App, ComposeResult
 from textual.widgets import TextArea, Header, Footer, Static
 from textual.command import Hit, Hits, DiscoveryHit, Provider
-from .engine_ollama import Engine as ollamaEngine
-from .prompts import prompts
-from .fileio import load, save
-from .parse_generate import (
+from engine_ollama import Engine as ollamaEngine
+from prompts import prompts
+from fileio import load, save
+from parse_generate import (
     parse_and_generate_stream,
     STATUS_NOTHING,
 )
+from async_wrapper import async_wrapper
 
+def simple_highlight(provider:Provider, txt: str, match: str) -> Text:
+    rich_text = Text(txt)
+    offset = txt.find(match)
+    if offset >= 0 and len(match) > 0:
+        match_style = provider.matcher(match).match_style
+        rich_text.stylize(match_style, offset, offset + len(match))
+    return rich_text
 
-# Use custom commands to switch model (instead of 'next model')
+# Use custom commands to switch lang (complements 'next lang')
+class SelectLangCommands(Provider):
+    """A command provider to select a lang."""
+    async def search(self, query: str) -> Hits:
+        """Search for Langs."""
+        app = self.app
+        for lang in app.langs:
+            if query in f"Select language {lang}":
+                yield Hit(
+                    1,
+                    simple_highlight(self,f"Select language {lang}", query),
+                    partial(app.set_lang, lang),
+                )
+
+    async def discover(self) -> Hits:
+        """Display Models"""
+        app = self.app
+        for lang in app.langs:
+            yield DiscoveryHit(f"Select language {lang}", partial(app.set_lang, lang))
+
 # https://textual.textualize.io/guide/command_palette/
 class SelectModelCommands(Provider):
     """A command provider to select a model."""
-
-    def simple_highlight(self, txt: str, match: str) -> Text:
-        rich_text = Text(txt)
-        offset = txt.find(match)
-        if offset >= 0 and len(match) > 0:
-            match_style = self.matcher(match).match_style
-            rich_text.stylize(match_style, offset, offset + len(match))
-        return rich_text
-
     async def search(self, query: str) -> Hits:
         """Search for Models."""
         app = self.app
         for model in app.models:
-            if query in model:
+            if query in "Select model {model}":
                 yield Hit(
                     1,
-                    self.simple_highlight(f"Select {model}", query),
+                    simple_highlight(self,f"Select model {model}", query),
                     partial(app.set_model, model),
                 )
 
     async def discover(self) -> Hits:
         """Display Models"""
+        app = self.app
         for model in app.models:
-            yield DiscoveryHit(f"Select {model}", partial(app.set_model, model))
-
+            yield DiscoveryHit(f"Select model {model}", partial(app.set_model, model))
 
 # Use custom text area with hook on \n
 # https://textual.textualize.io/widgets/text_area/#hooking-into-key-presses
 class StreamedTextArea(TextArea):
     """A subclass of TextArea to call parse_and_generate_stream on, 'enter'."""
+    async def stream_to_text_area(self, normal_generator:Generator):
+        app = self.app
+        app.set_status("Processing...", save_status=False)
+        self.read_only = True
+        async_gen_stream = async_wrapper(normal_generator)
+        async for generated, status in async_gen_stream:
+            if status is not STATUS_NOTHING:
+                if generated is not None and len(generated) > 0:
+                    self.insert(generated)
+        self.read_only = False
+        app.set_status()
 
     def _on_key(self, event: events.Key) -> None:
         # self.insert(f"event.key:{event.key}")
         if event.key == "enter":
             app = self.app
-            app.set_status("Processing...", save_status=False)
             fulltext = self.text.strip()
             self.insert("\n")
             ## STREAM
@@ -70,13 +102,8 @@ class StreamedTextArea(TextArea):
                 include_input=False,
                 cumulative=False,
             )
-            for generated, status in gen_stream:
-                if status is not STATUS_NOTHING:
-                    app.set_status(f"{status} : {generated}",  save_status=False)
-                    if generated is not None and len(generated) > 0:
-                        self.insert(generated) # TODO find a way to refresh the display - async ?
-                        
-            app.set_status()
+            # Fire the task but don't wait for it to finish
+            asyncio.create_task(self.stream_to_text_area(gen_stream))
 
 class WriterApp(App):
     BINDINGS = [
@@ -85,8 +112,7 @@ class WriterApp(App):
         ("ctrl+l", "next_lang", "next Language"),
         ("ctrl+q", "quit", "Quit"),
     ]
-    # TODO add lang select command - class SelectLangCommands(Provider):
-    COMMANDS = {SelectModelCommands} | App.COMMANDS
+    COMMANDS = {SelectModelCommands} | {SelectLangCommands} | App.COMMANDS
     # CSS_PATH = "textual.tcss"
 
     def __init__(self, *args, input_file=None, **kwargs):
@@ -112,25 +138,6 @@ class WriterApp(App):
 
     def on_ready(self) -> None:
         self.set_model(self.models[self.model_idx])
-
-    # def on_text_area_changed(self, message: TextArea.Changed):
-    #     if message.text_area.id == "txt_input":
-    #         if message.text_area.text[-1] == "\n":  # if just typed enter
-    #             self.set_status("Processing...", save_status=False)
-    #             fulltext = message.text_area.text.strip()
-    #             generated, status = parse_and_generate(
-    #                 self.engine,
-    #                 fulltext,
-    #                 self.model,
-    #                 self.prompt_suggest,
-    #                 self.prompt_summarize,
-    #                 include_input=False,
-    #             )
-    #             if status is not STATUS_NOTHING:
-    #                 self.set_status(f"{status} : {generated}")
-    #                 message.text_area.insert(generated)
-    #             else:
-    #                 self.set_status()
 
     def set_model(self, model):
         self.model = model
