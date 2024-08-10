@@ -85,7 +85,7 @@ class WriterApp(App):
         ("ctrl+l", "next_lang", "next Language"),
         ("ctrl+q", "quit", "Quit"),
     ]
-    # TODO add lang select command
+    # TODO add lang select command - class SelectLangCommands(Provider):
     COMMANDS = {SelectModelCommands} | App.COMMANDS
     # CSS_PATH = "textual.tcss"
 
