@@ -3,15 +3,13 @@ from textual.widgets import TextArea, Header, Footer, Static
 from time import sleep
 
 
-
 class StreamApp(App):
     BINDINGS = [
         ("ctrl+s", "stream", "Stream"),
         ("ctrl+q", "quit", "Quit"),
     ]
 
-
-    def __init__(self, *args, input_file=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def compose(self) -> ComposeResult:
@@ -20,17 +18,18 @@ class StreamApp(App):
         yield Static("status", id="status_log")
         yield Footer()
 
-    def mygen(self,n:int):
+    def mygen(self, n: int):
         yield "starting"
         for i in range(n):
             yield str(i)
-            sleep(.5)
+            sleep(0.5)
         yield "done"
-        
+
     def action_stream(self):
         for i in self.mygen(3):
-           ta = self.query_one("#txt_input", TextArea)
-           ta.insert(i)
+            ta = self.query_one("#txt_input", TextArea)
+            ta.insert(i)
+
 
 if __name__ == "__main__":
     app = StreamApp()
