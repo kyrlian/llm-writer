@@ -74,7 +74,7 @@ class StreamedTextArea(TextArea):
                 if status is not STATUS_NOTHING:
                     app.set_status(f"{status} : {generated}",  save_status=False)
                     if generated is not None and len(generated) > 0:
-                        self.insert(generated) # TODO find a way to refresh the display
+                        self.insert(generated) # TODO find a way to refresh the display - async ?
                         
             app.set_status()
 
@@ -82,8 +82,10 @@ class WriterApp(App):
     BINDINGS = [
         ("ctrl+s", "save", "Save"),
         ("ctrl+m", "next_model", "next Model"),
+        ("ctrl+l", "next_lang", "next Language"),
         ("ctrl+q", "quit", "Quit"),
     ]
+    # TODO add lang select command
     COMMANDS = {SelectModelCommands} | App.COMMANDS
     # CSS_PATH = "textual.tcss"
 
@@ -93,9 +95,11 @@ class WriterApp(App):
         self.models = self.engine.list()
         self.model_idx = 0
         self.status_msg = "Initializing..."
-        lang = list(prompts.keys())[0]
-        self.prompt_suggest = prompts[lang]["prompt_suggest"]
-        self.prompt_summarize = prompts[lang]["prompt_summarize"]
+        self.langs = list(prompts.keys())
+        self.lang_idx = 0
+        self.lang = self.langs[self.lang_idx]
+        self.prompt_suggest = prompts[self.lang]["prompt_suggest"]
+        self.prompt_summarize = prompts[self.lang]["prompt_summarize"]
         super().__init__(*args, **kwargs)
 
     def compose(self) -> ComposeResult:
@@ -130,11 +134,21 @@ class WriterApp(App):
 
     def set_model(self, model):
         self.model = model
-        self.set_status(f"Model: {self.model}")
+        self.set_status(f"Model: {self.model}, Language: {self.lang}")
+
+    def set_lang(self, lang):
+        self.lang = lang
+        self.prompt_suggest = prompts[self.lang]["prompt_suggest"]
+        self.prompt_summarize = prompts[self.lang]["prompt_summarize"]
+        self.set_status(f"Model: {self.model}, Language: {self.lang}")
 
     def action_next_model(self):
         self.model_idx = (self.model_idx + 1) % len(self.models)
         self.set_model(self.models[self.model_idx])
+
+    def action_next_lang(self):
+        self.lang_idx = (self.lang_idx + 1) % len(self.langs)
+        self.set_lang(self.langs[self.lang_idx])
 
     def action_save(self):
         self.set_status("Saving...")
