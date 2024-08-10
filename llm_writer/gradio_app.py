@@ -1,10 +1,10 @@
 import gradio as gr
 
-from engine_ollama import Engine as ollamaEngine
-from prompts import prompts
-from fileio import load, save
-from custom_style import MyStyle
-from parse_generate import parse_and_generate, SUMMARY_TAG, INSTRUCTION_TAG, parse_and_generate_stream, STATUS_NOTHING
+from .engine_ollama import Engine as ollamaEngine
+from .prompts import prompts
+from .fileio import load, save
+from .custom_style import MyStyle
+from .parse_generate import parse_and_generate, SUMMARY_TAG, INSTRUCTION_TAG, parse_and_generate_stream, STATUS_NOTHING
 
 # Init sdxlturbo
 sdxlturbo_loaded = False
@@ -121,6 +121,8 @@ with gr.Blocks(theme=MyStyle()) as demo:
         api_name="save",
     )
 
-
-if __name__ == "__main__":
+def main():
     demo.launch()
+    
+if __name__ == "__main__":
+    main()

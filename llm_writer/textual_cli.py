@@ -9,10 +9,10 @@ from textual import events
 from textual.app import App, ComposeResult
 from textual.widgets import TextArea, Header, Footer, Static
 from textual.command import Hit, Hits, DiscoveryHit, Provider
-from engine_ollama import Engine as ollamaEngine
-from prompts import prompts
-from fileio import load, save
-from parse_generate import (
+from .engine_ollama import Engine as ollamaEngine
+from .prompts import prompts
+from .fileio import load, save
+from .parse_generate import (
     parse_and_generate_stream,
     STATUS_NOTHING,
 )
@@ -163,8 +163,11 @@ class WriterApp(App):
         self.query_one("#status_log", Static).update(msg)  # .write_line(msg)
 
 
-if __name__ == "__main__":
+def main():
     args = sys.argv[1:]
     input_file = None if len(args) == 0 else args[0]
     app = WriterApp(input_file)
     app.run()
+
+if __name__ == "__main__":
+    main()

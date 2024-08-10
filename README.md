@@ -73,15 +73,16 @@ Optional to generate illustrations:
 poetry shell
 ```
 
-Web UI (gradio):
-```sh
-python ./llm_writer/gradio_app.py
-```
-
 Text ui (Textual):
 ```sh
-python ./llm_writer/textual_cli.py
+llmwriter
 ```
+
+Web UI (gradio):
+```sh
+llmwriter_webui
+```
+
 
 ## Ressources
 

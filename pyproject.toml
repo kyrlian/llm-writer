@@ -14,3 +14,9 @@ textual = "^0.75.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+llmwriter = "llm_writer.textual_cli:main"
+llmwt = "llm_writer.textual_cli:main"
+llmwg = "llm_writer.gradio_app:main"
+llmwriter_webui= "llm_writer.gradio_app:main"
