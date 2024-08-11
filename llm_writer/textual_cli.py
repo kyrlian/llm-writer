@@ -107,6 +107,7 @@ class StreamedTextArea(TextArea):
             asyncio.create_task(self.stream_to_text_area(gen_stream))
 
 class WriterApp(App):
+    TITLE = "LLM Writer"
     BINDINGS = [
         ("ctrl+s", "save", "Save"),
         ("ctrl+m", "next_model", "next Model"),
