@@ -7,10 +7,12 @@ default_textfile = "text.txt"
 # summaryfile = "summary.txt"
 
 def read(filename):
-    f = open(filename, "r")
-    lines = f.readlines()
-    return "\n".join(lines)
-
+    try:
+        f = open(filename, "r")
+        lines = f.readlines()
+        return "\n".join(lines)
+    except FileNotFoundError:
+        return ""
 
 def write(filename, s):
     f = open(filename, "w")
