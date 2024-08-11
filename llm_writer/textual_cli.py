@@ -1,10 +1,10 @@
 #!python3
-print("In module products __package__, __name__ ==", __package__, __name__)
+
+# print("textual_cli.py in module products __package__, __name__ ==", __package__, __name__)
 
 # https://textual.textualize.io/widgets/input/
 
 import sys
-import os
 import asyncio
 from functools import partial
 from typing import Generator
@@ -14,16 +14,14 @@ from textual.app import App, ComposeResult
 from textual.widgets import TextArea, Header, Footer, Static
 from textual.command import Hit, Hits, DiscoveryHit, Provider
 
-# sys.path.append(os.path.dirname(".."))
-
-from .engine_ollama import Engine as ollamaEngine
-from .prompts import prompts
-from .fileio import load, save
-from .parse_generate import (
+from llm_writer.engine_ollama import Engine as ollamaEngine
+from llm_writer.prompts import prompts
+from llm_writer.fileio import load, save
+from llm_writer.parse_generate import (
     parse_and_generate_stream,
     STATUS_NOTHING,
 )
-from .async_wrapper import async_wrapper
+from llm_writer.async_wrapper import async_wrapper
 
 def simple_highlight(provider:Provider, txt: str, match: str) -> Text:
     rich_text = Text(txt)

@@ -1,15 +1,15 @@
 import gradio as gr
 
-from .engine_ollama import Engine as ollamaEngine
-from .prompts import prompts
-from .fileio import load, save
-from .custom_style import MyStyle
-from .parse_generate import parse_and_generate, SUMMARY_TAG, INSTRUCTION_TAG, parse_and_generate_stream, STATUS_NOTHING
+from llm_writer.engine_ollama import Engine as ollamaEngine
+from llm_writer.prompts import prompts
+from llm_writer.fileio import load, save
+from llm_writer.custom_style import MyStyle
+from llm_writer.parse_generate import SUMMARY_TAG, INSTRUCTION_TAG, parse_and_generate_stream
 
 # Init sdxlturbo
 sdxlturbo_loaded = False
 try:
-    from .sdxlturbo import sdxlturboPipeline
+    from llm_writer.sdxlturbo import sdxlturboPipeline
 
     sdxlturbo_loaded = True
 except ImportError:

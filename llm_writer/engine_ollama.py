@@ -3,7 +3,6 @@ import json
 
 # Ollama exposes port 11434 by default
 
-
 class Engine:
     def __init__(self, model_id="llama3", port=11434, verbose=False):
         self.model = model_id
