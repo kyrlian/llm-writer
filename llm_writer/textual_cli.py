@@ -46,7 +46,7 @@ class SelectLangCommands(Provider):
                 )
 
     async def discover(self) -> Hits:
-        """Display Models"""
+        """Display Langs"""
         app = self.app
         for lang in app.langs:
             yield DiscoveryHit(f"Select language {lang}", partial(app.set_lang, lang))
