@@ -1,22 +1,22 @@
-[tool.poetry]
-name = "llm_writer"
+[project]
+name = "llm-writer"
 version = "0.1.0"
-description = ""
-authors = ["kyrlian <kyrlian@gmail.com>"]
+description = "LLM assisted writing console"
+authors = [{name ="kyrlian", email= "kyrlian@gmail.com"}]
 readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "gradio>=4.44.0",
+    "textual>=0.81.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-gradio = "^4.40.0"
-textual = "^0.75.1"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
+[project.scripts]
 llmwriter = "llm_writer.textual_cli:main"
 llmw = "llm_writer.textual_cli:main"
 llmwg = "llm_writer.gradio_app:main"
 llmwriter_webui= "llm_writer.gradio_app:main"
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

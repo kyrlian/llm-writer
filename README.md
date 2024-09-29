@@ -3,36 +3,21 @@
 ![Screenshot](./images/Screenshot-v3b.png)
 
 ## Design
-### Inputs/Outputs
-1. System instructions for a/ generation and b/ summary (can be edited by user, but shouldn't need to)
-2. a/ Full text and b/ summary
-3. User instruction to generate new text  
-4. a/ Temp text and b/ temp summary for review
-
-### Actions
-- Generate : 1a, 2b, 3 => 4a
-- Summarize : 1b, 4a => 4b
-- Accept text: 2a, 4a => 2a 
-- Accept summary: 2b, 4b => 2b
 
 ### Usage flow
-1. Input an initial context in "Summary"
-2. Input an instruction to move the story forward in "Instruction"
-3. Suggest new temp text and review
-4. Generate new temp summary and review
-5. Accept will append temp text and temp summary to text and summary
-6. Repeat
+1. Input an initial context
+2. Input an instruction to move the story forward (`#`)
+3. Adapt the generated text
+4. Generate and review the summary (`---`)
+5. Repeat
 
 
 ## Technology
-- [python](https://www.python.org/)
-- [ollama](https://ollama.com/)
-- [gradio](https://www.gradio.app/)
-- [textual](https://textual.textualize.io/)
+[python](https://www.python.org/)
+, [ollama](https://ollama.com/)
+, [gradio](https://www.gradio.app/)
+, [textual](https://textual.textualize.io/)
   
-Optional to generate illustrations:
-- [sdxl turbo](https://huggingface.co/stabilityai/sdxl-turbo)
-- [pytorch](https://pytorch.org/)
   
 ## Install
 
@@ -49,40 +34,22 @@ Optional to generate illustrations:
     git clone https://github.com/kyrlian/llm-writer.git
     cd llm-writer
     ```
-- Install requirements
 
-    ```sh
-    poetry install
-    ```
-
-    or with pip:
-
-    ```sh
-    pip install -r requirements.txt --upgrade
-    ```
-
-- **Optional**: install sdxl turbo requirements - if sdxl turbo can't be loaded, the image generation will be disabled.:
-    ```sh
-    pip install -r requirements-sdxlturbo.txt --upgrade
-    pip install -r requirements-torch-windows-cuda12.txt --upgrade
-    ```
-
-## Run
-
+## Run directly
 ```sh
-poetry shell
+uv run llm_writer/textual_cli.py
 ```
 
-Text ui (Textual):
+## Install as tool
 ```sh
-llmwriter
+uv tool install .
 ```
 
-Web UI (gradio):
-```sh
-llmwriter_webui
-```
+Run Text ui (Textual) with `llmwriter`
 
+Web UI (gradio) with `llmwriter_webui`
+
+Start a line with `#` to give instructions, and with `---` to summarize the last paragraph.
 
 ## Ressources
 
